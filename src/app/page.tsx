@@ -2,8 +2,15 @@ import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 
 export default function Home() {
   return (
-    <MaxWidthWrapper className="bg-blue-800">
-      <div>Text 1</div>
+    <MaxWidthWrapper className="mb-12 mt-28 sm:mt-40 flex flex-col items-center justify-center text-center">
+      <div
+        className="mx-auto mb-4 flex max-w-fit items-center justify-center 
+      space-x-2 overflow-hidden rounded-full border border-gray-200 bg-white 
+      px-7 py-2 shadow-md backdrop-blur transition-all hover:border-white 
+      hover:bg-gray-300"
+      >
+        <p className="text-sm font-semibold text-gray-700">Check X-Cheq Now</p>
+      </div>
     </MaxWidthWrapper>
   );
 }
