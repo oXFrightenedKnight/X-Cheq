@@ -91,7 +91,7 @@ export default function Home() {
               Read in minutes, not hours.
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Summarizing a PDF file has never been easier.
+              Summarizing PDF files has never been easier.
             </p>
           </div>
         </div>
@@ -102,9 +102,49 @@ export default function Home() {
             <div className="flex flex-col space-y-2 border-l-4 border-zinc-300 py-2 pl-4 md:border-l-0 md:border-t-2 md:pb-0 md:pl-0 md:pt-4">
               <span className="text-sm font-medium text-blue-500">Step 1</span>
               <span className="text-xl font-semibold">Create an account</span>
+              <span className=" text-zinc-700 ">
+                Start with a Free plan or upgrade to{" "}
+                <Link href="/pricing" className="text-blue-800 underline underline-offset-2">
+                  Pro
+                </Link>{" "}
+                right away.
+              </span>
+            </div>
+          </li>
+          <li className="md:flex-1">
+            <div className="flex flex-col space-y-2 border-l-4 border-zinc-300 py-2 pl-4 md:border-l-0 md:border-t-2 md:pb-0 md:pl-0 md:pt-4">
+              <span className="text-sm font-medium text-blue-500">Step 2</span>
+              <span className="text-xl font-semibold">Upload your first PDF</span>
+              <span className=" text-zinc-700 ">
+                Decide on which PDF you want to summarize and upload it into X-Cheq.
+              </span>
+            </div>
+          </li>
+          <li className="md:flex-1">
+            <div className="flex flex-col space-y-2 border-l-4 border-zinc-300 py-2 pl-4 md:border-l-0 md:border-t-2 md:pb-0 md:pl-0 md:pt-4">
+              <span className="text-sm font-medium text-blue-500">Step 3</span>
+              <span className="text-xl font-semibold">Start chatting with your PDF file</span>
+              <span className=" text-zinc-700 ">
+                Once we process the file, you will be good to go and start chatting with your file
+                in real-time.
+              </span>
             </div>
           </li>
         </ol>
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+          <div className="mt-16 flow-root sm:mt-24">
+            <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg-p-4">
+              <Image
+                src="/file-upload-preview.jpg"
+                width={1419}
+                height={732}
+                alt="Upload Picture Preview"
+                quality={100}
+                className="rounded-md bg-white p-2 sm:p-8 md:p-20 shadow-2xl ring-1 ring-gray-900/10"
+              ></Image>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
