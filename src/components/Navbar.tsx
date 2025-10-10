@@ -28,7 +28,7 @@ const Navbar = () => {
                 Pricing
               </Link>
 
-              <SignInButton forceRedirectUrl="/dashboard">
+              <SignInButton>
                 <button
                   className={buttonVariants({
                     variant: "ghost",
@@ -39,7 +39,7 @@ const Navbar = () => {
                 </button>
               </SignInButton>
 
-              <SignUpButton forceRedirectUrl="/dashboard">
+              <SignUpButton>
                 <button
                   className={buttonVariants({
                     size: "sm",
