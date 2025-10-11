@@ -29,17 +29,19 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body
-          className={cn(
-            "min-h-screen font-sans antialiased grainy",
-            `${geistSans.variable} ${geistMono.variable} antialiased`
-          )}
-        >
-          <Providers>
-            <Navbar></Navbar>
-            {children}
-          </Providers>
-        </body>
+        <Providers>
+          <body
+            className={cn(
+              "min-h-screen font-sans antialiased grainy",
+              `${geistSans.variable} ${geistMono.variable} antialiased`
+            )}
+          >
+            <Providers>
+              <Navbar></Navbar>
+              {children}
+            </Providers>
+          </body>
+        </Providers>
       </html>
     </ClerkProvider>
   );
