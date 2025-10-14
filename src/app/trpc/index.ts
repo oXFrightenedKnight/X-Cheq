@@ -1,6 +1,6 @@
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
-import { publicProcedure, router } from "./trpc";
+import { privateProcedure, publicProcedure, router } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
 
@@ -30,6 +30,9 @@ export const appRouter = router({
     }
 
     return { success: true };
+  }),
+  getUserFiles: privateProcedure.query(({ ctx }) => {
+    // YOU STOPPED HERE / Destructuring context
   }),
 });
 // Export type router type signature,

@@ -1,12 +1,23 @@
-import { initTRPC } from "@trpc/server";
-/**
- * Initialization of tRPC backend
- * Should be done only once per backend!
- */
+import { auth } from "@clerk/nextjs/server";
+import { initTRPC, TRPCError } from "@trpc/server";
+
 const t = initTRPC.create();
-/**
- * Export reusable router and procedure helpers
- * that can be used throughout the router
- */
+const middleware = t.middleware;
+
+const isAuth = middleware(async (opts) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  return opts.next({
+    ctx: {
+      userId: userId,
+    },
+  });
+});
+
 export const router = t.router;
 export const publicProcedure = t.procedure;
+export const privateProcedure = t.procedure.use(isAuth);
