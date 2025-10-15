@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { DialogContent, Dialog, DialogTrigger } from "./ui/dialog";
+import { DialogContent, Dialog, DialogTrigger, DialogTitle } from "./ui/dialog";
 
 const UploadButton = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -18,7 +18,9 @@ const UploadButton = () => {
         <Button>Upload PDF File</Button>
       </DialogTrigger>
 
-      <DialogContent>Hi!</DialogContent>
+      <DialogContent>
+        <DialogTitle>Hi!</DialogTitle>
+      </DialogContent>
     </Dialog>
   );
 };

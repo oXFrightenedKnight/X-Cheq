@@ -31,8 +31,14 @@ export const appRouter = router({
 
     return { success: true };
   }),
-  getUserFiles: privateProcedure.query(({ ctx }) => {
-    // YOU STOPPED HERE / Destructuring context
+  getUserFiles: privateProcedure.query(async ({ ctx }) => {
+    const { userId } = ctx;
+
+    return await db.file.findMany({
+      where: {
+        userId,
+      },
+    });
   }),
 });
 // Export type router type signature,
