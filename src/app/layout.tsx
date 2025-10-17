@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import { ClerkProvider } from "@clerk/nextjs";
 import Providers from "@/components/Providers";
+import { Toaster } from "@/components/ui/sonner";
 
 import "react-loading-skeleton/dist/skeleton.css";
 
@@ -40,6 +41,7 @@ export default function RootLayout({
           >
             <Providers>
               <Navbar></Navbar>
+              <Toaster></Toaster>
               {children}
             </Providers>
           </body>
