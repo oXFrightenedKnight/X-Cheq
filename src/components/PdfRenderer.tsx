@@ -13,21 +13,28 @@ interface PDFRendererProps {
 const PDFRenderer = ({ url }: PDFRendererProps) => {
   const { width, ref } = useResizeDetector();
 
+  // Base width of a PDF page — used to calculate scale ratio
+  const baseWidth = 684;
+
   return (
     <div className="w-full bg-white rounded-md shadow flex flex-col items-center">
+      {/* Toolbar */}
       <div className="h-14 w-full border-b border-zinc-200 flex items-center justify-between px-2">
         <div className="flex items-center gap-1.5">Toolbar</div>
-      </div>{" "}
-      {/* toolbar of pdf */}
-      <div className="w-full h-[80vh]">
-        <div className="h-full overflow-auto" ref={ref}>
-          <div style={{ width: width ? `${width}px` : "100%" }} className="">
+      </div>
+
+      {/* PDF viewer */}
+      <div className="w-full h-[80vh]" ref={ref}>
+        <div className="h-full overflow-auto">
+          {width ? (
             <Worker workerUrl="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js">
               <Viewer
                 fileUrl={url}
+                key={width}
+                defaultScale={width / baseWidth} // Dynamically scale to container width
                 renderLoader={() => (
                   <div className="flex justify-center">
-                    <Loader2 className="my-24 h-6 w-6 animate-spin"></Loader2>
+                    <Loader2 className="my-24 h-6 w-6 animate-spin" />
                   </div>
                 )}
                 renderError={(error) => {
@@ -38,9 +45,13 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
                     </div>
                   );
                 }}
-              ></Viewer>
+              />
             </Worker>
-          </div>
+          ) : (
+            <div className="flex justify-center">
+              <Loader2 className="my-24 h-6 w-6 animate-spin" />
+            </div>
+          )}
         </div>
       </div>
     </div>
