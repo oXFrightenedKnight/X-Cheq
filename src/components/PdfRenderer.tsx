@@ -2,9 +2,12 @@
 
 import { Viewer, Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-import { Loader2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useResizeDetector } from "react-resize-detector";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { useState } from "react";
 
 interface PDFRendererProps {
   url: string;
@@ -13,6 +16,8 @@ interface PDFRendererProps {
 const PDFRenderer = ({ url }: PDFRendererProps) => {
   const { width, ref } = useResizeDetector();
 
+  const [numPages, setNumPages] = useState<number | null>(null);
+
   // Base width of a PDF page — used to calculate scale ratio
   const baseWidth = 684;
 
@@ -20,7 +25,23 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
     <div className="w-full bg-white rounded-md shadow flex flex-col items-center">
       {/* Toolbar */}
       <div className="h-14 w-full border-b border-zinc-200 flex items-center justify-between px-2">
-        <div className="flex items-center gap-1.5">Toolbar</div>
+        <div className="flex items-center gap-1.5">
+          <Button aria-label="previous page" variant="ghost">
+            <ChevronDown className="h-4 w-4"></ChevronDown>
+          </Button>
+
+          <div className="flex items-center gap-1.5">
+            <Input className="w-12 h-8"></Input>
+            <p className="text-zinc-700 text-sm space-x-1">
+              <span>/</span>
+              <span>{numPages ?? "x"}</span>
+            </p>
+          </div>
+
+          <Button aria-label="next page" variant="ghost">
+            <ChevronUp className="h-4 w-4"></ChevronUp>
+          </Button>
+        </div>
       </div>
 
       {/* PDF viewer */}
@@ -44,6 +65,10 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
                       <p>Failed to load PDF.</p>
                     </div>
                   );
+                }}
+                onDocumentLoad={(e) => {
+                  // e.doc contains info about the document
+                  setNumPages(e.doc.numPages);
                 }}
               />
             </Worker>
