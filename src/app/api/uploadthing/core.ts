@@ -7,9 +7,7 @@
 // 5. onUploadComplete - stores quota and custom logic
 
 import { auth } from "@clerk/nextjs/server";
-import { error } from "console";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError } from "uploadthing/server";
 import { db } from "@/db";
 
 const f = createUploadthing();
@@ -17,8 +15,8 @@ const f = createUploadthing();
 export const ourFileRouter = {
   fileUploader: f({
     pdf: {
-      maxFileSize: "2MB",
-      maxFileCount: 2,
+      maxFileSize: "8MB",
+      maxFileCount: 10,
     },
   })
     .middleware(async ({ req }) => {
@@ -36,7 +34,7 @@ export const ourFileRouter = {
           key: file.key,
           name: file.name,
           userId: metadata.userId,
-          url: `https://uploadthing-prod.s3.us-west-2.amazonaws.com/${file.key}`,
+          url: file.ufsUrl,
           uploadStatus: "PROCESSING",
         },
       });
