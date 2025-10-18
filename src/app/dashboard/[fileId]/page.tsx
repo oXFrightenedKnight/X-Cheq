@@ -3,8 +3,8 @@ import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/db";
-import PDFRenderer from "@/components/PdfRenderer";
 import ChatWrapper from "@/components/ChatWrapper";
+import PDFRendererWrapper from "@/components/PdfRendererWrapper";
 
 type PageProps = {
   params: Promise<{ fileId: string }>;
@@ -35,7 +35,7 @@ export default async function Page({ params }: PageProps) {
         {/* left side */}
         <div className="flex-1 xl:flex ">
           <div className="px-4 py-6 sm:px-6 lg:pl-8 xl:flex-1 xl:pl-6">
-            <PDFRenderer></PDFRenderer>
+            {file.url ? <PDFRendererWrapper url={file.url}></PDFRendererWrapper> : null}
           </div>
         </div>
 
