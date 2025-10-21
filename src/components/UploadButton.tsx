@@ -155,7 +155,7 @@ const UploadButton = () => {
         <Button>Upload PDF File</Button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogTitle>
           <UploadDropzone></UploadDropzone>
         </DialogTitle>

@@ -47,34 +47,41 @@ const PDFFullScreen = ({ fileUrl }: Pdffulsscreenprops) => {
       </DialogTrigger>
 
       <DialogContent className="max-w-none w-full">
-        <div className="w-full h-[80vh]" ref={ref}>
-          <div className="h-full overflow-auto">
-            <Worker workerUrl="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js">
-              <Viewer
-                fileUrl={fileUrl}
-                key={width}
-                defaultScale={5}
-                renderLoader={() => (
-                  <div className="flex justify-center">
-                    <Loader2 className="my-24 h-6 w-6 animate-spin" />
-                  </div>
-                )}
-                renderError={(error) => {
-                  toast.error("Unable to load PDF file.");
-                  return (
-                    <div className="flex items-center justify-center h-[80vh] text-zinc-500">
-                      <p>Failed to load PDF.</p>
+        <DialogTitle>
+          <div className="w-full h-[80vh]" ref={ref}>
+            <div className="h-full overflow-auto">
+              <Worker workerUrl="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js">
+                <Viewer
+                  fileUrl={fileUrl}
+                  key={width}
+                  defaultScale={(width ?? baseWidth) / baseWidth}
+                  renderLoader={() => (
+                    <div className="flex justify-center">
+                      <Loader2 className="my-24 h-6 w-6 animate-spin" />
                     </div>
-                  );
-                }}
-                plugins={[pageNavigationPluginInstance, rotatePluginInstance]}
-              />
-            </Worker>
+                  )}
+                  renderError={(error) => {
+                    toast.error("Unable to load PDF file.");
+                    return (
+                      <div className="flex items-center justify-center h-[80vh] text-zinc-500">
+                        <p>Failed to load PDF.</p>
+                      </div>
+                    );
+                  }}
+                  plugins={[pageNavigationPluginInstance, rotatePluginInstance]}
+                />
+              </Worker>
+            </div>
           </div>
-        </div>
+        </DialogTitle>
       </DialogContent>
     </Dialog>
   );
 };
 
 export default PDFFullScreen;
+
+{
+  /* left to do: make the pdf take almost full width, 
+  and track user's page to render the expanded document on that page */
+}
