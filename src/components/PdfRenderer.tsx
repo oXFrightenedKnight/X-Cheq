@@ -1,15 +1,25 @@
 "use client";
 
-import { Viewer, Worker } from "@react-pdf-viewer/core";
+import { RotateDirection, Viewer, Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import "@react-pdf-viewer/page-navigation/lib/styles/index.css";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { zoomPlugin } from "@react-pdf-viewer/zoom";
+import "@react-pdf-viewer/zoom/lib/styles/index.css";
+import { rotatePlugin, RenderRotateProps } from "@react-pdf-viewer/rotate";
+import { CheckIcon, ChevronDown, ChevronUp, Loader2, RotateCw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useResizeDetector } from "react-resize-detector";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import PDFFullScreen from "./PDFFullScreen";
 
 interface PDFRendererProps {
   url: string;
@@ -21,9 +31,17 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [inputValue, setInputValue] = useState<string>("1");
   const [prevPage, setPrevPage] = useState<number>(1);
+  const [scale, setScale] = useState<number>(0);
+  const [autoFit, setAutoFit] = useState<boolean>(true);
+
+  const zoomPluginInstance = zoomPlugin();
+  const { zoomTo } = zoomPluginInstance;
 
   const pageNavigationPluginInstance = pageNavigationPlugin();
   const { jumpToPage } = pageNavigationPluginInstance;
+
+  const rotatePluginInstance = rotatePlugin();
+  const { Rotate } = rotatePluginInstance;
 
   const HandlePageJump = () => {
     const inputPage = parseInt(inputValue, 10);
@@ -32,6 +50,11 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
     } else {
       setInputValue(prevPage.toString());
     }
+  };
+  const HandleZoom = (scaleTo: number) => {
+    setScale(scaleTo);
+    zoomTo(scaleTo);
+    setAutoFit(false);
   };
 
   // Base width of a PDF page — used to calculate scale ratio
@@ -87,6 +110,93 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
             <ChevronUp className="h-4 w-4"></ChevronUp>
           </Button>
         </div>
+
+        <div className="space-x-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-1.5" aria-label="zoom" variant="ghost">
+                <Search className="h-4 w-4"></Search>
+                {autoFit ? <div>Auto</div> : <div>{scale * 100}%</div>}
+                <ChevronDown className="h-3 w-3 opacity-50"></ChevronDown>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onSelect={() => {
+                  setAutoFit(true);
+                  setScale(0);
+                }}
+                className="flex justify-between items-center"
+              >
+                Auto
+                {autoFit ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  HandleZoom(0.75);
+                }}
+                className="flex justify-between items-center"
+              >
+                75%
+                {scale === 0.75 ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  HandleZoom(1);
+                }}
+                className="flex justify-between items-center"
+              >
+                100%
+                {scale === 1 ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  HandleZoom(1.25);
+                }}
+                className="flex justify-between items-center"
+              >
+                125%
+                {scale === 1.25 ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  HandleZoom(1.5);
+                }}
+                className="flex justify-between items-center"
+              >
+                150%
+                {scale === 1.5 ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  HandleZoom(2);
+                }}
+                className="flex justify-between items-center"
+              >
+                200%
+                {scale === 2 ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  HandleZoom(3);
+                }}
+                className="flex justify-between items-center"
+              >
+                300%
+                {scale === 3 ? <CheckIcon></CheckIcon> : null}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Rotate direction={RotateDirection.Forward}>
+            {(props: RenderRotateProps) => (
+              <Button aria-label="rotate 90 degrees" variant="ghost" onClick={props.onClick}>
+                <RotateCw className="h-4 w-4"></RotateCw>
+              </Button>
+            )}
+          </Rotate>
+          <PDFFullScreen fileUrl={url}></PDFFullScreen>
+        </div>
       </div>
 
       {/* PDF viewer */}
@@ -97,7 +207,7 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
               <Viewer
                 fileUrl={url}
                 key={width}
-                defaultScale={width / baseWidth} // Dynamically scale to container width
+                defaultScale={autoFit ? width / baseWidth : scale} // Dynamically scale to container width
                 renderLoader={() => (
                   <div className="flex justify-center">
                     <Loader2 className="my-24 h-6 w-6 animate-spin" />
@@ -115,7 +225,7 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
                   // e.doc contains info about the document
                   setNumPages(e.doc.numPages);
                 }}
-                plugins={[pageNavigationPluginInstance]}
+                plugins={[pageNavigationPluginInstance, zoomPluginInstance, rotatePluginInstance]}
                 onPageChange={(e) => {
                   setPrevPage(e.currentPage + 1);
                   setInputValue((e.currentPage + 1).toString());
