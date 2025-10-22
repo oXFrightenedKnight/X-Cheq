@@ -195,7 +195,7 @@ const PDFRenderer = ({ url }: PDFRendererProps) => {
               </Button>
             )}
           </Rotate>
-          <PDFFullScreen fileUrl={url}></PDFFullScreen>
+          <PDFFullScreen fileUrl={url} currentPage={parseInt(inputValue)}></PDFFullScreen>
         </div>
       </div>
 

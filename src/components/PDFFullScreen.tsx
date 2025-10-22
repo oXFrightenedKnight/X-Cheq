@@ -11,12 +11,14 @@ import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import "@react-pdf-viewer/page-navigation/lib/styles/index.css";
 import { rotatePlugin } from "@react-pdf-viewer/rotate";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Pdffulsscreenprops {
   fileUrl: string;
+  currentPage: number;
 }
 
-const PDFFullScreen = ({ fileUrl }: Pdffulsscreenprops) => {
+const PDFFullScreen = ({ fileUrl, currentPage }: Pdffulsscreenprops) => {
   const [isOpen, setIsOpen] = useState(false);
   const { width, ref } = useResizeDetector();
 
@@ -26,7 +28,7 @@ const PDFFullScreen = ({ fileUrl }: Pdffulsscreenprops) => {
   const rotatePluginInstance = rotatePlugin();
   const { Rotate } = rotatePluginInstance;
 
-  const baseWidth = 684;
+  const baseWidth = 500;
 
   return (
     <Dialog
@@ -46,9 +48,9 @@ const PDFFullScreen = ({ fileUrl }: Pdffulsscreenprops) => {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-none w-full">
+      <DialogContent className={cn("sm:max-w-[95vw] w-full")}>
         <DialogTitle>
-          <div className="w-full h-[80vh]" ref={ref}>
+          <div className="w-full h-[90vh]" ref={ref}>
             <div className="h-full overflow-auto">
               <Worker workerUrl="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js">
                 <Viewer
@@ -68,6 +70,9 @@ const PDFFullScreen = ({ fileUrl }: Pdffulsscreenprops) => {
                       </div>
                     );
                   }}
+                  onDocumentLoad={() => {
+                    jumpToPage(currentPage - 1);
+                  }}
                   plugins={[pageNavigationPluginInstance, rotatePluginInstance]}
                 />
               </Worker>
@@ -80,8 +85,3 @@ const PDFFullScreen = ({ fileUrl }: Pdffulsscreenprops) => {
 };
 
 export default PDFFullScreen;
-
-{
-  /* left to do: make the pdf take almost full width, 
-  and track user's page to render the expanded document on that page */
-}
