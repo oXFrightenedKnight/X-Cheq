@@ -3,7 +3,7 @@ import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/db";
-import ChatWrapper from "@/components/ChatWrapper";
+import ChatWrapper from "@/components/chat/ChatWrapper";
 import PDFRenderer from "@/components/PdfRenderer";
 
 type PageProps = {

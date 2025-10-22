@@ -49,7 +49,7 @@ const PDFFullScreen = ({ fileUrl, currentPage }: Pdffulsscreenprops) => {
       </DialogTrigger>
 
       <DialogContent className={cn("sm:max-w-[95vw] w-full")}>
-        <DialogTitle>
+        <DialogTitle aria-describedby="full screen pdf">
           <div className="w-full h-[90vh]" ref={ref}>
             <div className="h-full overflow-auto">
               <Worker workerUrl="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js">
