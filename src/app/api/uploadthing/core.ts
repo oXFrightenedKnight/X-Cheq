@@ -9,6 +9,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { db } from "@/db";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { pinecone } from "@/lib/pinecone";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { PineconeStore } from "@langchain/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone";
 
 const f = createUploadthing();
 
@@ -38,6 +43,51 @@ export const ourFileRouter = {
           uploadStatus: "PROCESSING",
         },
       });
+
+      try {
+        const response = await fetch(file.ufsUrl); // fetch the file from UploadThing's storage
+        const blob = await response.blob(); // turns response into blob for parsing (LangChain friendly format)
+
+        const loader = new PDFLoader(blob); // loads the PDF in LangChain format
+
+        const PageLevelDocs = await loader.load(); // splits it into page level docs so each page is one text chunk with metadata
+
+        const pagesAmt = PageLevelDocs.length;
+
+        // vectorize + index entire document
+
+        const pineconeIndex = pinecone.Index("x-cheq"); // get pinecone index you created
+
+        const embeddings = new OpenAIEmbeddings({
+          openAIApiKey: process.env.OPENAI_API_KEY, // create openai embedding generator
+        });
+
+        // sends every page through openai embedding's api
+        // generates numeric vectors
+        // inserts them into your pinecone index, namespaced by the file’s DB ID
+        await PineconeStore.fromDocuments(PageLevelDocs, embeddings, {
+          pineconeIndex,
+          namespace: createdFile.id,
+        });
+
+        await db.file.update({
+          data: {
+            uploadStatus: "SUCCESS", // if successful, mark done
+          },
+          where: {
+            id: createdFile.id,
+          },
+        });
+      } catch (error) {
+        await db.file.update({
+          data: {
+            uploadStatus: "FAILED",
+          },
+          where: {
+            id: createdFile.id,
+          },
+        });
+      }
     }),
 } satisfies FileRouter;
 
