@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.53",
     "@clerk/nextjs": "^6.33.3",
     "@kinde-oss/kinde-auth-nextjs": "^2.9.2",
     "@langchain/classic": "^1.0.0",
@@ -31,6 +32,7 @@
     "@trpc/client": "^11.6.0",
     "@trpc/react-query": "^11.6.0",
     "@trpc/server": "^11.6.0",
+    "ai": "^5.0.78",
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
@@ -38,6 +40,7 @@
     "langchain": "^1.0.1",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
+    "openai": "^6.6.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.4.120",
     "react": "19.1.0",
