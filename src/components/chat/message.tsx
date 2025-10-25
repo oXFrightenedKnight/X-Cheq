@@ -17,6 +17,7 @@ const Message = ({ message, isNextMessageSamePerson }: MessageProps) => {
         "justify-end": message.isUserMessage,
       })}
     >
+      {/* Avatar wrapper + avatars */}
       <div
         className={cn("relative flex h-6 w-6 aspect-square items-center justify-center", {
           "order-2 bg-blue-600 rounded-sm": message.isUserMessage,
@@ -31,12 +32,14 @@ const Message = ({ message, isNextMessageSamePerson }: MessageProps) => {
         )}
       </div>
 
+      {/* Bubble column */}
       <div
         className={cn("flex flex-col space-y-2 text-base max-w-md mx-2", {
           "order-1 items-end": message.isUserMessage,
-          "order-2 iems-start": !message.isUserMessage,
+          "order-2 items-start": !message.isUserMessage,
         })}
       >
+        {/* Bubble itself */}
         <div
           className={cn("px-4 py-2 rounded-lg inline-block", {
             "bg-blue-600 text-white": message.isUserMessage,
@@ -45,6 +48,7 @@ const Message = ({ message, isNextMessageSamePerson }: MessageProps) => {
             "rounded-bl-none": !isNextMessageSamePerson && !message.isUserMessage,
           })}
         >
+          {/* Markdown - can render formatted chatgpt responses that use #, ##, **, etc. to format text into bold, italic, etc. */}
           {typeof message.text === "string" ? (
             <div
               className={cn("prose", {
@@ -56,6 +60,8 @@ const Message = ({ message, isNextMessageSamePerson }: MessageProps) => {
           ) : (
             message.text
           )}
+
+          {/* Timestamp */}
           {message.id !== "loading-message" ? (
             <div
               className={cn("text-xs select-none mt-2 w-full text-right", {
