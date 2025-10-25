@@ -1,8 +1,9 @@
 "use client";
-
 // It manages the chat logic for sending and streaming messages to the
 // server — handling input, optimistic updates, loading state, and syncing message data across the app.
 
+// sends message to backend from user, optimistically updates ui to display it in real time, streams ai
+// response and extracts the text from raw chuncks, updates messages in real time, handles errors if it fails, and wraps all chat UI.
 import { trpc } from "@/app/_trpc/client";
 import { INFINITE_QUERY_LIMIT } from "@/config/infinite-query";
 import { useMutation } from "@tanstack/react-query";
@@ -15,27 +16,21 @@ type StreamResponse = {
   handleInputChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   isLoading: boolean;
 };
-
 export const ChatContext = createContext<StreamResponse>({
   addMessage: () => {},
   message: "",
   handleInputChange: () => {},
   isLoading: false,
 });
-
 interface Props {
   fileId: string;
   children: ReactNode;
 }
-
 export const ChatContextProvider = ({ fileId, children }: Props) => {
   const [message, setMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const utils = trpc.useUtils();
-
   const backupMessage = useRef("");
-
   const { mutate: sendMessage } = useMutation({
     mutationFn: async ({ message }: { message: string }) => {
       const response = await fetch("/api/message", {
@@ -48,135 +43,174 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
       if (!response.ok) {
         throw new Error("Failed to send message");
       }
-
       return response.body;
     },
     onMutate: async ({ message }) => {
       backupMessage.current = message;
       setMessage("");
-
-      // step 1 - cancel any outgoing refetches
-      await utils.getFileMessages.cancel();
-
-      // step 2
-      const prevMessages = utils.getFileMessages.getInfiniteData();
-
-      // step 3 - optimistically insert new value
+      await utils.getFileMessages.cancel({ fileId, limit: INFINITE_QUERY_LIMIT });
+      const previousData = utils.getFileMessages.getInfiniteData({
+        fileId,
+        limit: INFINITE_QUERY_LIMIT,
+      });
       utils.getFileMessages.setInfiniteData({ fileId, limit: INFINITE_QUERY_LIMIT }, (old) => {
         if (!old) {
           return {
-            pages: [],
+            pages: [
+              {
+                messages: [
+                  {
+                    createdAt: new Date().toISOString(),
+                    id: crypto.randomUUID(),
+                    text: message,
+                    isUserMessage: true,
+                  },
+                ],
+              },
+            ],
             pageParams: [],
           };
         }
-        // clone new pages
-        let newPages = [...old.pages];
-
-        let latestPage = newPages[0]!;
-
-        latestPage.messages = [
-          // take all messages that were previously in the chat and move them up to put our new message up
-          {
-            createdAt: new Date().toISOString(),
-            id: crypto.randomUUID(),
-            text: message,
-            isUserMessage: true,
-          },
-          ...latestPage.messages, // take all messages that were previously in the chat and move them up to put our new message up
-        ];
-        newPages[0] = latestPage;
-
+        const [firstPage, ...restPages] = old.pages;
+        const updatedFirstPage = {
+          ...firstPage,
+          messages: [
+            {
+              createdAt: new Date().toISOString(),
+              id: crypto.randomUUID(),
+              text: message,
+              isUserMessage: true,
+            },
+            ...firstPage.messages,
+          ],
+        };
         return {
           ...old,
-          pages: newPages,
+          pages: [updatedFirstPage, ...restPages],
         };
       });
       setIsLoading(true);
-
       return {
-        prevMessages: prevMessages?.pages.flatMap((page) => page.messages) ?? [],
+        previousData,
       };
     },
     onSuccess: async (stream) => {
-      // ALL of this code below basically makes the ai to stream the response from the chunks we get from api like in real time
       setIsLoading(false);
       if (!stream) {
         return toast.error("Error sending question! Please try again or refresh the page.");
       }
-
       const reader = stream.getReader();
       const decoder = new TextDecoder();
-      let done = false;
-
-      // accumalted response
-      let accResponse = "";
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunkValue = decoder.decode(value);
-
-        accResponse += chunkValue;
-
-        // append chunk to message
+      let accumulatedResponse = "";
+      let buffer = "";
+      let isDone = false;
+      const upsertStreamingMessage = (content: string) => {
         utils.getFileMessages.setInfiniteData({ fileId, limit: INFINITE_QUERY_LIMIT }, (old) => {
-          if (!old) return { pages: [], pageParams: [] };
-
-          let isAiResponseCreated = old.pages.some(
-            (page) => page.messages.some((message) => message.id === "ai-response") // check for each chunk that we add our message to if the
-            // message already exists and if true,
-            // then we will not create another one
+          if (!old) {
+            return {
+              pages: [
+                {
+                  messages: [
+                    {
+                      createdAt: new Date().toISOString(),
+                      id: "ai-response",
+                      text: content,
+                      isUserMessage: false,
+                    },
+                  ],
+                },
+              ],
+              pageParams: [],
+            };
+          }
+          const [firstPage, ...restPages] = old.pages;
+          const aiMessageExists = firstPage.messages.some(
+            (message) => message.id === "ai-response"
           );
-          let updatedPages = old.pages.map((page) => {
-            if (page === old.pages[0]) {
-              let updatedMessages;
-              if (!isAiResponseCreated) {
-                updatedMessages = [
+          const updatedFirstPage = {
+            ...firstPage,
+            messages: aiMessageExists
+              ? firstPage.messages.map((message) =>
+                  message.id === "ai-response" ? { ...message, text: content } : message
+                )
+              : [
                   {
                     createdAt: new Date().toISOString(),
                     id: "ai-response",
-                    text: accResponse,
+                    text: content,
                     isUserMessage: false,
                   },
-                  ...page.messages,
-                ];
-              } else {
-                updatedMessages = page.messages.map((message) => {
-                  if (message.id === "ai-response") {
-                    return { ...message, text: accResponse };
-                  }
-                  return message;
-                });
-              }
-              return {
-                ...page,
-                messages: updatedMessages,
-              };
-            }
-
-            return page;
-          });
-          return { ...old, pages: updatedPages };
+                  ...firstPage.messages,
+                ],
+          };
+          return {
+            ...old,
+            pages: [updatedFirstPage, ...restPages],
+          };
         });
+      };
+      while (!isDone) {
+        const { value, done: doneReading } = await reader.read();
+        isDone = doneReading;
+        if (!value) {
+          continue;
+        }
+        buffer += decoder.decode(value, { stream: !doneReading });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) {
+            continue;
+          }
+          const payload = trimmed.replace(/^data:\s*/, "");
+          if (!payload || payload === "[DONE]") {
+            isDone = payload === "[DONE]" ? true : isDone;
+            continue;
+          }
+          try {
+            const event = JSON.parse(payload);
+            if (event.type === "text-delta" && typeof event.delta === "string") {
+              accumulatedResponse += event.delta;
+              upsertStreamingMessage(accumulatedResponse);
+            } else if (event.type === "text") {
+              const text = typeof event.text === "string" ? event.text : "";
+              accumulatedResponse += text;
+              upsertStreamingMessage(accumulatedResponse);
+            } else if (event.type === "error") {
+              toast.error("The assistant failed to respond. Please try again.");
+              isDone = true;
+              break;
+            } else if (event.type === "finish") {
+              isDone = true;
+              break;
+            }
+          } catch (error) {
+            console.error("Failed to parse streaming chunk", error);
+          }
+        }
       }
     },
     onError: (_, __, context) => {
       setMessage(backupMessage.current);
-      utils.getFileMessages.setData({ fileId }, { messages: context?.prevMessages ?? [] });
+      setIsLoading(false);
+      if (context?.previousData) {
+        utils.getFileMessages.setInfiniteData(
+          { fileId, limit: INFINITE_QUERY_LIMIT },
+          context.previousData
+        );
+      }
+      toast.error("Something went wrong while sending your message.");
     },
     onSettled: async () => {
       setIsLoading(false);
-
       await utils.getFileMessages.invalidate({ fileId });
     },
   });
-
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
   };
-
   const addMessage = () => sendMessage({ message });
-
   return (
     <ChatContext.Provider
       value={{
