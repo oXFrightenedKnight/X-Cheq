@@ -2,11 +2,9 @@ export const PLANS = [
   {
     name: "Free",
     slug: "free",
-    quota: 10,
     maxFiles: 2,
-    pagesPerPdf: 10,
-    standardCredits: 300,
-    premCredits: 0,
+    standardCredits: 100,
+    maxPagesPerFile: 50,
     pricing: {
       amount: 0,
       priceIds: {
@@ -18,11 +16,9 @@ export const PLANS = [
   {
     name: "Advanced",
     slug: "advanced",
-    quota: 25,
     maxFiles: 10,
-    pagesPerPdf: 100,
-    standardCredits: 1000,
-    premCredits: 100,
+    standardCredits: 500,
+    maxPagesPerFile: 300,
     pricing: {
       amount: 7.99,
       priceIds: {
@@ -34,11 +30,9 @@ export const PLANS = [
   {
     name: "Pro",
     slug: "pro",
-    quota: 75,
     maxFiles: 50,
-    pagesPerPdf: 1000,
-    standardCredits: 3000,
-    premCredits: 350,
+    standardCredits: 2000,
+    maxPagesPerFile: 1500,
     pricing: {
       amount: 29.99,
       priceIds: {
