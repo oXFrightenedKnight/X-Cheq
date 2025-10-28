@@ -3,6 +3,13 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "../_trpc/client";
 import { Loader2 } from "lucide-react";
+import { TRPCClientError } from "@trpc/client";
+
+interface TRPCErrorData {
+  data?: {
+    code?: string;
+  };
+}
 
 export default function AuthPage() {
   const router = useRouter();
@@ -11,7 +18,7 @@ export default function AuthPage() {
 
   const { data, isSuccess, isLoading, isError, error } = trpc.authCallback.useQuery(undefined, {
     retry: (failureCount, err) => {
-      const code = (err as any).data?.code;
+      const code = (err as TRPCErrorData).data?.code;
       if (code === "UNAUTHORIZED") return false;
       return failureCount < 2;
     },
@@ -28,7 +35,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!isError || !error) return;
-    const code = (error as any).data?.code;
+    const code = (error as TRPCErrorData).data?.code;
     if (code === "UNAUTHORIZED") {
       router.push("/sign-in");
     }
