@@ -18,4 +18,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaAutosizeProps>(
     );
   }
 );
+
+Textarea.displayName = "Textarea";
 export { Textarea };
