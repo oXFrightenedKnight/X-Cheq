@@ -220,7 +220,7 @@ export default async function Page() {
                         <ArrowRight className="h-5 w-5 ml-1.5"></ArrowRight>
                       </Link>
                     ) : userId ? (
-                      <UpgradeButton></UpgradeButton>
+                      <UpgradeButton plan={plan}></UpgradeButton>
                     ) : (
                       <Link
                         href="/sign-in"

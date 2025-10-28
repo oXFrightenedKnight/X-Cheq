@@ -5,6 +5,9 @@ import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
 import { z } from "zod";
 import { INFINITE_QUERY_LIMIT } from "@/config/infinite-query";
+import { absoluteUrl } from "@/lib/utils";
+import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
+import { PLANS } from "@/config/stripe";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -42,6 +45,57 @@ export const appRouter = router({
       },
     });
   }),
+  createStripeSession: privateProcedure
+    .input(z.object({ plan: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { userId } = ctx;
+      const { plan } = input;
+
+      const billingUrl = absoluteUrl("/dashboard/billing");
+
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const dbUser = await db.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!dbUser) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const currentSubPlan = await getUserSubscriptionPlan();
+
+      if (currentSubPlan.isSubscribed && dbUser.stripeCustomerId) {
+        const stripeSession = await stripe.billingPortal.sessions.create({
+          customer: dbUser.stripeCustomerId,
+          return_url: billingUrl,
+        });
+
+        return { url: stripeSession.url };
+      }
+
+      const selectedPlan = PLANS.find((p) => p.slug === plan.toLowerCase());
+      if (!selectedPlan) throw new TRPCError({ code: "BAD_REQUEST" });
+
+      const stripeSession = await stripe.checkout.sessions.create({
+        success_url: billingUrl,
+        cancel_url: billingUrl,
+        payment_method_types: ["card"],
+        mode: "subscription",
+        billing_address_collection: "auto",
+        line_items: [
+          {
+            price: selectedPlan.pricing.priceIds.test, // use production at the end when working in production
+            quantity: 1,
+          },
+        ],
+        customer: dbUser.stripeCustomerId ?? undefined,
+        metadata: {
+          userId: userId,
+        },
+      });
+      return { url: stripeSession.url };
+    }),
   getFileMessages: privateProcedure
     .input(
       z.object({
