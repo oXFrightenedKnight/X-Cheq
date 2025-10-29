@@ -5,9 +5,15 @@ import { httpBatchLink } from "@trpc/client";
 import { trpc } from "@/app/_trpc/client";
 
 const getBaseUrl = () => {
-  if (typeof window !== "undefined") return ""; // browser → same origin
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
   return `http://localhost:${process.env.PORT ?? 3000}`;
 };
 
