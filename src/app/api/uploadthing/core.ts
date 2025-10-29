@@ -70,6 +70,17 @@ export const ourFileRouter = {
           namespace: createdFile.id,
         });
 
+        const { userId } = await auth();
+        console.log("🔐 UPLOAD AUTH USERID:", userId);
+
+        console.log("📁 FILE DATA RECEIVED:", file);
+        console.log("🧠 METADATA:", metadata);
+
+        if (!userId) {
+          console.error("❌ No userId in UploadThing auth!");
+          throw new Error("Unauthorized from UploadThing");
+        }
+
         await db.file.update({
           data: {
             uploadStatus: "SUCCESS", // if successful, mark done

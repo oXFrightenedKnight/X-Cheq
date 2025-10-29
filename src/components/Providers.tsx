@@ -5,15 +5,17 @@ import { httpBatchLink } from "@trpc/client";
 import { trpc } from "@/app/_trpc/client";
 
 const getBaseUrl = () => {
+  // Client-side always has a valid URL
   if (typeof window !== "undefined") {
-    return window.location.origin;
+    return window.location.origin || "http://localhost:3000";
   }
+
+  // Deployed server-side
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL;
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
+
+  // Dev server-side
   return `http://localhost:${process.env.PORT ?? 3000}`;
 };
 
