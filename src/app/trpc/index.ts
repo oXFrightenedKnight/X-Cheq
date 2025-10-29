@@ -1,5 +1,5 @@
 import "server-only";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { privateProcedure, publicProcedure, router } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
@@ -12,11 +12,13 @@ import { PLANS } from "@/config/stripe";
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
     const { userId, sessionClaims } = await auth();
-    const primaryEmail = sessionClaims?.primaryEmail as string;
 
-    if (!userId || !primaryEmail) {
+    if (!userId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+
+    const user = await currentUser();
+    const email = user?.primaryEmailAddress?.emailAddress ?? "unknown@user";
     // check if the user is in the database
     const dbUser = await db.user.findFirst({
       where: {
@@ -29,7 +31,7 @@ export const appRouter = router({
       await db.user.create({
         data: {
           id: userId,
-          email: primaryEmail,
+          email: email,
         },
       });
     }
