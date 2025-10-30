@@ -13,15 +13,14 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { pinecone } from "@/lib/pinecone";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
-import { Pinecone } from "@pinecone-database/pinecone";
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
   fileUploader: f({
     pdf: {
-      maxFileSize: "2MB",
-      maxFileCount: 2,
+      maxFileSize: "8MB",
+      maxFileCount: 10,
     },
   })
     .middleware(async ({ req }) => {
@@ -69,17 +68,6 @@ export const ourFileRouter = {
           pineconeIndex,
           namespace: createdFile.id,
         });
-
-        const { userId } = await auth();
-        console.log("🔐 UPLOAD AUTH USERID:", userId);
-
-        console.log("📁 FILE DATA RECEIVED:", file);
-        console.log("🧠 METADATA:", metadata);
-
-        if (!userId) {
-          console.error("❌ No userId in UploadThing auth!");
-          throw new Error("Unauthorized from UploadThing");
-        }
 
         await db.file.update({
           data: {
