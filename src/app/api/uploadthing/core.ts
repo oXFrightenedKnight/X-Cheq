@@ -25,6 +25,7 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       const { userId } = await auth();
+      console.log("userId:", userId);
 
       if (!userId) throw new Error("Unauthorized");
 
@@ -42,6 +43,7 @@ export const ourFileRouter = {
           uploadStatus: "PROCESSING",
         },
       });
+      console.log("createdFile", createdFile);
 
       try {
         const response = await fetch(file.ufsUrl); // fetch the file from UploadThing's storage
@@ -78,6 +80,8 @@ export const ourFileRouter = {
           },
         });
       } catch (error) {
+        console.error("UPLOAD ERROR:", error);
+
         await db.file.update({
           data: {
             uploadStatus: "FAILED",
