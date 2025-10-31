@@ -24,6 +24,7 @@ export const ourFileRouter = {
     },
   })
     .middleware(async ({ req }) => {
+      console.log("got to clerk");
       const { userId } = await auth();
       console.log("userId:", userId);
 
