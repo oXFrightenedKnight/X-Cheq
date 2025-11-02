@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import Image from "next/image";
 import { Icons } from "./icons";
 import Link from "next/link";
-import { Gem } from "lucide-react";
+import { Gem, LogOut } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 
 interface UserAccountNavProps {
@@ -75,6 +75,7 @@ const UserAccountNav = async ({ email, imageUrl, name }: UserAccountNavProps) =>
 
         <DropdownMenuItem>
           <SignOutButton>Log Out</SignOutButton>
+          <LogOut className="text-red-500 h-4 w-4 ml-1.5"></LogOut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
