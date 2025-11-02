@@ -4,6 +4,9 @@ const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 const isPublicRoute = createRouteMatcher(["/api/uploadthing(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
+  const url = req.nextUrl.pathname;
+  if (url.startsWith("/api/webhooks/stripe")) return;
+
   if (isProtectedRoute(req) && !isPublicRoute(req)) {
     await auth.protect();
   }
