@@ -130,7 +130,7 @@ export default async function Page() {
                     </div>
                   )}
 
-                  <div className="flex-grow flex flex-col justify-between">
+                  <div className="grow flex flex-col justify-between">
                     {/* Upper content */}
                     <div>
                       <h3 className="my-3 text-center font-display text-3xl font-bold">{plan}</h3>
