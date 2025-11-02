@@ -31,6 +31,21 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const utils = trpc.useUtils();
   const backupMessage = useRef("");
+
+  function getNextRenewalDate(): string {
+    const now = new Date();
+    const year = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
+    const month = (now.getMonth() + 1) % 12;
+
+    const nextDate = new Date(year, month, 1);
+
+    return nextDate.toLocaleDateString(undefined, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
   const { mutate: sendMessage } = useMutation({
     mutationFn: async ({ message }: { message: string }) => {
       const response = await fetch("/api/message", {
@@ -40,6 +55,13 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
           message,
         }),
       });
+      if (response.status === 402) {
+        const renewalDate = getNextRenewalDate();
+        toast.error(
+          `You have exceeded your monthly message limit. You can continue on ${renewalDate} or upgrade to get more messages.`
+        );
+        return;
+      }
       if (!response.ok) {
         throw new Error("Failed to send message");
       }

@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { NextRequest } from "next/server";
+import { getUserSubscriptionPlan } from "@/lib/stripe";
 
 import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
@@ -28,6 +29,26 @@ export const POST = async (req: NextRequest) => {
   });
 
   if (!file) return new Response("Not found", { status: 404 });
+
+  // check quota
+  const subscriptionPlan = await getUserSubscriptionPlan();
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const userMessageCount = await db.message.count({
+    where: {
+      userId,
+      createdAt: { gte: firstOfMonth },
+      isUserMessage: true,
+    },
+  });
+
+  if (userMessageCount >= subscriptionPlan.standardCredits!) {
+    return new Response(
+      "You have exceeded your monthly message limit. Please consider upgrading for more",
+      { status: 402 }
+    );
+  }
 
   await db.message.create({
     data: {
