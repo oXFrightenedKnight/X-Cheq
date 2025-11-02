@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
     config.resolve.alias.encoding = false;
     return config;
   },
-  experimental: {
-    optimizeCss: false,
-  },
   images: {
     remotePatterns: [
       {
