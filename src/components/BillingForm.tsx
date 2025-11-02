@@ -38,7 +38,7 @@ const BillingForm = ({
           <CardHeader>
             <CardTitle>Subscription Plan</CardTitle>
             <CardDescription>
-              You are currently on a <strong>{subscriptionPlan.name}</strong> plan.
+              You are currently on a <strong>{subscriptionPlan.name ?? "Free"}</strong> plan.
             </CardDescription>
           </CardHeader>
 

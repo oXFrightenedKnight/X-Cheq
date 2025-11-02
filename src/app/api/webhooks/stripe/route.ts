@@ -22,8 +22,10 @@ export async function POST(request: Request) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
+  console.log("Session metadata:", session?.metadata);
 
   if (!session?.metadata?.userId) {
+    console.log("missing metadata");
     return new Response(null, {
       status: 200,
     });

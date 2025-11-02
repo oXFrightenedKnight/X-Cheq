@@ -26,21 +26,16 @@ const UserAccountNav = async ({ email, imageUrl, name }: UserAccountNavProps) =>
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="overflow-visible">
-        <Button className="rounded-full h-8 w-8 aspect-square bg-slate-400 cursor-pointer">
+        <Button className="rounded-full h-8 w-8 aspect-square bg-slate-400">
           <Avatar className="relative w-8 h-8">
             {imageUrl ? (
               <div className="relative aspect-square h-full w-full">
-                <Image
-                  fill
-                  src={imageUrl}
-                  alt="profile-picture"
-                  referrerPolicy="no-referrer"
-                ></Image>
+                <Image fill src={imageUrl} alt="profile picture" referrerPolicy="no-referrer" />
               </div>
             ) : (
               <AvatarFallback>
                 <span className="sr-only">{name}</span>
-                <Icons.user className="h-4 w-9 text-zinc-900"></Icons.user>
+                <Icons.user className="h-4 w-4 text-zinc-900" />
               </AvatarFallback>
             )}
           </Avatar>
@@ -55,7 +50,7 @@ const UserAccountNav = async ({ email, imageUrl, name }: UserAccountNavProps) =>
           </div>
         </div>
 
-        <DropdownMenuSeparator></DropdownMenuSeparator>
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
           <Link href="/dashboard">Dashboard</Link>
@@ -63,18 +58,18 @@ const UserAccountNav = async ({ email, imageUrl, name }: UserAccountNavProps) =>
 
         <DropdownMenuItem asChild>
           {subscriptionPlan?.isSubscribed ? (
-            <Link href="/dashboard/billing">Dashboard</Link>
+            <Link href="/dashboard/billing">Manage Subscription</Link>
           ) : (
             <Link href="/pricing">
-              Upgrade <Gem className="text-blue-600 h-4 w-4 ml-1.5"></Gem>
+              Upgrade <Gem className="text-blue-600 h-4 w-4 ml-1.5" />
             </Link>
           )}
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator></DropdownMenuSeparator>
+        <DropdownMenuSeparator />
 
-        <DropdownMenuItem>
-          <SignOutButton>Log Out</SignOutButton>
+        <DropdownMenuItem className="cursor-pointer">
+          <SignOutButton>Log out</SignOutButton>
           <LogOut className="text-red-500 h-4 w-4 ml-1.5"></LogOut>
         </DropdownMenuItem>
       </DropdownMenuContent>
