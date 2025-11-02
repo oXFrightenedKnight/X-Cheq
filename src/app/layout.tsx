@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { cn, constructMetadata } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
-import { ClerkProvider } from "@clerk/nextjs";
 import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
+import { cn, constructMetadata } from "@/lib/utils";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
 
 import "react-loading-skeleton/dist/skeleton.css";
 

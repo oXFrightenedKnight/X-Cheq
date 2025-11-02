@@ -4,7 +4,7 @@ export const PLANS = [
     slug: "free",
     maxFiles: 2,
     standardCredits: 100,
-    maxPagesPerFile: 50,
+    maxPagesPerFile: 10,
     pricing: {
       amount: 0,
       priceIds: {
@@ -18,7 +18,7 @@ export const PLANS = [
     slug: "advanced",
     maxFiles: 10,
     standardCredits: 500,
-    maxPagesPerFile: 300,
+    maxPagesPerFile: 50,
     pricing: {
       amount: 7.99,
       priceIds: {
@@ -32,7 +32,7 @@ export const PLANS = [
     slug: "pro",
     maxFiles: 50,
     standardCredits: 2000,
-    maxPagesPerFile: 1500,
+    maxPagesPerFile: 300,
     pricing: {
       amount: 29.99,
       priceIds: {

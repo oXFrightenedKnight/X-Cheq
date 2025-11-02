@@ -13,14 +13,20 @@ import { toast } from "sonner";
 import { trpc } from "@/app/_trpc/client";
 import { useRouter } from "next/navigation";
 
-const UploadDropzone = () => {
+const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string }) => {
   const router = useRouter();
 
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadError, setUploadError] = useState<boolean>(false);
 
-  const { startUpload } = useUploadThing("fileUploader");
+  const { startUpload } = useUploadThing(
+    subscriptionPlanName === "Advanced"
+      ? "advancedPlanUploader"
+      : subscriptionPlanName === "Pro"
+        ? "proPlanUploader"
+        : "freePlanUploader"
+  );
 
   const { mutate: startPolling } = trpc.getFile.useMutation({
     onSuccess: (file) => {
@@ -100,7 +106,15 @@ const UploadDropzone = () => {
                 <p className="mb-2 text-sm text-zinc-700">
                   <span className="font-bold">Click to upload</span> or drag and drop
                 </p>
-                <p className="text-xs text-zinc-500">PDF (up to 2MB)</p>
+                <p className="text-xs text-zinc-500">
+                  PDF (up to{" "}
+                  {subscriptionPlanName === "Pro"
+                    ? "32"
+                    : subscriptionPlanName === "Advanced"
+                      ? "8"
+                      : "2"}
+                  MB)
+                </p>
               </div>
 
               {acceptedFiles && acceptedFiles[0] ? (
@@ -141,7 +155,7 @@ const UploadDropzone = () => {
   );
 };
 
-const UploadButton = () => {
+const UploadButton = ({ subscriptionPlanName }: { subscriptionPlanName: string }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
@@ -157,7 +171,7 @@ const UploadButton = () => {
 
       <DialogContent>
         <DialogTitle>
-          <UploadDropzone></UploadDropzone>
+          <UploadDropzone subscriptionPlanName={subscriptionPlanName}></UploadDropzone>
         </DialogTitle>
       </DialogContent>
     </Dialog>

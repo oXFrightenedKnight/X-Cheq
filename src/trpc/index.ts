@@ -8,6 +8,7 @@ import { INFINITE_QUERY_LIMIT } from "@/config/infinite-query";
 import { absoluteUrl } from "@/lib/utils";
 import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
 import { PLANS } from "@/config/stripe";
+import { UTApi } from "uploadthing/server";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -191,6 +192,10 @@ export const appRouter = router({
       });
 
       if (!file) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // delete from UploadThing storage first
+      const utapi = new UTApi();
+      await utapi.deleteFiles(file.key); // key is what uploadthing uses, not id
 
       await db.file.delete({
         where: {

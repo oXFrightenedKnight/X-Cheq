@@ -26,6 +26,10 @@ export default async function Page() {
           footnote: "The maximum number of messages you can send to AI monthly.",
         },
         {
+          text: "10 pages per PDF",
+          footnote: "The maximum number of pages per PDF",
+        },
+        {
           text: "Mobile-friendly interface",
         },
         {
@@ -45,12 +49,16 @@ export default async function Page() {
       quota: PLANS.find((p) => p.slug === "advanced")!.maxFiles,
       features: [
         {
-          text: "8MB file size limit",
+          text: "8MB max file size",
           footnote: "The maximum file size of a single PDF file.",
         },
         {
           text: "500 messages limit",
           footnote: "The maximum number of messages you can send to AI monthly.",
+        },
+        {
+          text: "50 pages per PDF",
+          footnote: "The maximum number of pages per PDF",
         },
         {
           text: "Mobile-friendly interface",
@@ -77,6 +85,10 @@ export default async function Page() {
         {
           text: "2000 messages limit",
           footnote: "The maximum number of messages you can send to AI monthly.",
+        },
+        {
+          text: "300 pages per PDF",
+          footnote: "The maximum number of pages per PDF",
         },
         {
           text: "Mobile-friendly interface",
