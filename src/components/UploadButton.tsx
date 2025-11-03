@@ -12,6 +12,8 @@ import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
 import { trpc } from "@/app/_trpc/client";
 import { useRouter } from "next/navigation";
+import { TRPCClientErrorLike } from "@trpc/client";
+import { AppRouter } from "@/trpc";
 
 const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string }) => {
   const router = useRouter();
@@ -28,12 +30,10 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
         : "freePlanUploader"
   );
 
-  const { mutate: startPolling } = trpc.getFile.useMutation({
+  const { mutateAsync: getFileOnce } = trpc.getFile.useMutation({
     onSuccess: (file) => {
       router.push(`/dashboard/${file.id}`);
     },
-    retry: 5,
-    retryDelay: 1000,
   });
 
   const startSimulatedProgress = () => {
@@ -50,6 +50,18 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
     return interval;
   };
 
+  const pollForFile = async (key: string, attempts = 10, delay = 750) => {
+    for (let i = 0; i < attempts; i++) {
+      try {
+        return await getFileOnce({ key });
+      } catch (err) {
+        const code = (err as TRPCClientErrorLike<AppRouter>)?.data?.code;
+        if (code !== "NOT_FOUND") throw err;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+    throw new Error("File not found after polling");
+  };
   return (
     <Dropzone
       multiple={false}
@@ -85,7 +97,8 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
         clearInterval(progressInterval);
         setUploadProgress(100);
 
-        startPolling({ key });
+        const file = await pollForFile(key);
+        router.push(`/dashboard/${file.id}`);
       }}
     >
       {(
