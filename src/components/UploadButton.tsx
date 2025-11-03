@@ -50,7 +50,7 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
     return interval;
   };
 
-  const pollForFile = async (key: string, attempts = 10, delay = 750) => {
+  const pollForFile = async (key: string, attempts = 30, delay = 750) => {
     for (let i = 0; i < attempts; i++) {
       try {
         return await getFileOnce({ key });
