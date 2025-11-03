@@ -32,8 +32,8 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
     onSuccess: (file) => {
       router.push(`/dashboard/${file.id}`);
     },
-    retry: true,
-    retryDelay: 500,
+    retry: 5,
+    retryDelay: 1000,
   });
 
   const startSimulatedProgress = () => {

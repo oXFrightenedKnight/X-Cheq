@@ -180,6 +180,9 @@ export const appRouter = router({
   getFile: privateProcedure
     .input(z.object({ key: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      console.log("🔍 getFile TRPC hit");
+      console.log("✅ Key:", input.key);
+      console.log("👤 User from context:", ctx.userId);
       const { userId } = ctx;
 
       const file = await db.file.findFirst({
@@ -189,7 +192,10 @@ export const appRouter = router({
         },
       });
 
-      if (!file) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!file) {
+        console.error("🚫 No file found for key/user");
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
 
       return file;
     }),
