@@ -1,23 +1,10 @@
 "use client";
-import { Children, PropsWithChildren, useState } from "react";
+
+import { trpc } from "@/app/_trpc/client";
+import { absoluteUrl } from "@/lib/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
-import { trpc } from "@/app/_trpc/client";
-
-const getBaseUrl = () => {
-  // Client-side always has a valid URL
-  if (typeof window !== "undefined") {
-    return window.location.origin || "http://localhost:3000";
-  }
-
-  // Deployed server-side
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL;
-  }
-
-  // Dev server-side
-  return `http://localhost:${process.env.PORT ?? 3000}`;
-};
+import { PropsWithChildren, useState } from "react";
 
 const Providers = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(() => new QueryClient());
@@ -25,7 +12,7 @@ const Providers = ({ children }: PropsWithChildren) => {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
+          url: absoluteUrl("/api/trpc"),
         }),
       ],
     })
