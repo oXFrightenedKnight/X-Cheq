@@ -47,6 +47,19 @@ export const appRouter = router({
       where: {
         userId,
       },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        _count: {
+          select: {
+            messages: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
   }),
   createStripeSession: privateProcedure

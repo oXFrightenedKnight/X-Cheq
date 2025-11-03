@@ -66,12 +66,12 @@ const Dashboard = ({ subscriptionPlanName }: { subscriptionPlanName: string }) =
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    123
+                    {file._count.messages}
                   </div>
 
                   <Button
                     size="sm"
-                    className="w-full"
+                    className="w-full cursor-pointer"
                     variant="destructive"
                     onClick={() => deleteFile({ id: file.id })}
                   >

@@ -179,7 +179,7 @@ const UploadButton = ({ subscriptionPlanName }: { subscriptionPlanName: string }
       }}
     >
       <DialogTrigger onClick={() => setIsOpen(true)} asChild>
-        <Button>Upload PDF File</Button>
+        <Button className="cursor-pointer">Upload PDF File</Button>
       </DialogTrigger>
 
       <DialogContent>

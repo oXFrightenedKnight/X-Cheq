@@ -27,7 +27,7 @@ const UserAccountNav = async ({ email, imageUrl, name }: UserAccountNavProps) =>
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="overflow-visible">
         <Button className="rounded-full h-8 w-8 aspect-square bg-slate-400">
-          <Avatar className="relative w-8 h-8">
+          <Avatar className="relative w-8 h-8 cursor-pointer">
             {imageUrl ? (
               <div className="relative aspect-square h-full w-full">
                 <Image fill src={imageUrl} alt="profile picture" referrerPolicy="no-referrer" />
