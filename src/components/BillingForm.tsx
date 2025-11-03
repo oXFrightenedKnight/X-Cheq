@@ -50,7 +50,7 @@ const BillingForm = ({
 
             {subscriptionPlan.isSubscribed && (
               <p className="text-xs font-medium">
-                {subscriptionPlan.isOnGracePeriod
+                {subscriptionPlan.isCanceled
                   ? "Your plan will be canceled on "
                   : "Your plan renews on "}
                 {format(subscriptionPlan.stripeCurrentPeriodEnd!, "MMMM d, yyyy")}.
