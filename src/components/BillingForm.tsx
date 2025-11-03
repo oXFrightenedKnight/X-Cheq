@@ -48,14 +48,14 @@ const BillingForm = ({
               {subscriptionPlan.isSubscribed ? "Manage Subscription" : "Upgrade Now"}
             </Button>
 
-            {subscriptionPlan.isSubscribed ? (
-              <p className="rounded-full text-xs font-medium">
-                {subscriptionPlan.isCanceled
+            {subscriptionPlan.isSubscribed && (
+              <p className="text-xs font-medium">
+                {subscriptionPlan.isOnGracePeriod
                   ? "Your plan will be canceled on "
                   : "Your plan renews on "}
-                {format(subscriptionPlan.stripeCurrentPeriodEnd!, "dd.mm.yyyy")}.
+                {format(subscriptionPlan.stripeCurrentPeriodEnd!, "MMMM d, yyyy")}.
               </p>
-            ) : null}
+            )}
           </CardFooter>
         </Card>
       </form>

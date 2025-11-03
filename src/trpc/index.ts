@@ -9,6 +9,7 @@ import { absoluteUrl } from "@/lib/utils";
 import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
 import { PLANS } from "@/config/stripe";
 import { UTApi } from "uploadthing/server";
+import { error } from "console";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -54,6 +55,9 @@ export const appRouter = router({
       const { userId } = ctx;
       const { plan } = input;
 
+      console.log("context:", ctx);
+      console.log("userId:", userId);
+
       const billingUrl = absoluteUrl("/dashboard/billing");
 
       if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -68,11 +72,16 @@ export const appRouter = router({
 
       const currentSubPlan = await getUserSubscriptionPlan();
 
-      if (currentSubPlan.isSubscribed && dbUser.stripeCustomerId) {
-        const stripeSession = await stripe.billingPortal.sessions.create({
-          customer: dbUser.stripeCustomerId,
-          return_url: billingUrl,
-        });
+      if (dbUser.stripeCustomerId && (currentSubPlan.isSubscribed || currentSubPlan.isCanceled)) {
+        const stripeSession = await stripe.billingPortal.sessions
+          .create({
+            customer: dbUser.stripeCustomerId,
+            return_url: billingUrl,
+          })
+          .catch((error) => {
+            console.error("💥 Billing portal error:", error);
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+          });
 
         return { url: stripeSession.url };
       }
@@ -80,23 +89,28 @@ export const appRouter = router({
       const selectedPlan = PLANS.find((p) => p.slug === plan.toLowerCase());
       if (!selectedPlan) throw new TRPCError({ code: "BAD_REQUEST" });
 
-      const stripeSession = await stripe.checkout.sessions.create({
-        success_url: billingUrl,
-        cancel_url: billingUrl,
-        payment_method_types: ["card"],
-        mode: "subscription",
-        billing_address_collection: "auto",
-        line_items: [
-          {
-            price: selectedPlan.pricing.priceIds.test, // use production at the end when working in production
-            quantity: 1,
+      const stripeSession = await stripe.checkout.sessions
+        .create({
+          success_url: billingUrl,
+          cancel_url: billingUrl,
+          payment_method_types: ["card"],
+          mode: "subscription",
+          billing_address_collection: "auto",
+          line_items: [
+            {
+              price: selectedPlan.pricing.priceIds.test, // use production at the end when working in production
+              quantity: 1,
+            },
+          ],
+          customer: dbUser.stripeCustomerId ?? undefined,
+          metadata: {
+            userId: userId,
           },
-        ],
-        customer: dbUser.stripeCustomerId ?? undefined,
-        metadata: {
-          userId: userId,
-        },
-      });
+        })
+        .catch((error) => {
+          console.error("🔥 Stripe session creation failed:", error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+        });
       return { url: stripeSession.url };
     }),
   getFileMessages: privateProcedure

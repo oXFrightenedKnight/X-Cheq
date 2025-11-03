@@ -3,59 +3,57 @@ import { db } from "@/db";
 import { auth } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  typescript: true,
-});
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
 
 export async function getUserSubscriptionPlan() {
   const { userId } = await auth();
-
-  if (!userId) {
-    return {
-      ...PLANS[0],
-      isSubscribed: false,
-      isCanceled: false,
-      stripeCurrentPeriodEnd: null,
-    };
-  }
+  if (!userId) return noPlan();
 
   const dbUser = await db.user.findFirst({
-    where: {
-      id: userId,
-    },
+    where: { id: userId },
   });
+  if (!dbUser) return noPlan();
 
-  if (!dbUser) {
-    return {
-      ...PLANS[0],
-      isSubscribed: false,
-      isCanceled: false,
-      stripeCurrentPeriodEnd: null,
-    };
-  }
+  const stillActive =
+    !!dbUser.stripeCurrentPeriodEnd && dbUser.stripeCurrentPeriodEnd.getTime() > Date.now();
 
-  const isSubscribed = Boolean(
-    dbUser.stripePriceId &&
-      dbUser.stripeCurrentPeriodEnd && // 86400000 = 1 day
-      dbUser.stripeCurrentPeriodEnd.getTime() + 86_400_000 > Date.now()
-  );
+  if (!stillActive) return noPlan();
 
-  const plan = isSubscribed
-    ? PLANS.find((plan) => plan.pricing.priceIds.test === dbUser.stripePriceId)
-    : null;
-
+  let stripeSubscription = null;
   let isCanceled = false;
-  if (isSubscribed && dbUser.stripeSubscriptionId) {
-    const stripePlan = await stripe.subscriptions.retrieve(dbUser.stripeSubscriptionId);
-    isCanceled = stripePlan.cancel_at_period_end;
+
+  if (dbUser.stripeSubscriptionId) {
+    stripeSubscription = await stripe.subscriptions.retrieve(dbUser.stripeSubscriptionId);
+
+    isCanceled = stripeSubscription.cancel_at_period_end === true;
   }
+
+  const plan = PLANS.find((p) => p.pricing.priceIds.test === dbUser.stripePriceId) ?? PLANS[0];
 
   return {
     ...plan,
     stripeSubscriptionId: dbUser.stripeSubscriptionId,
-    stripeCurrentPeriodEnd: dbUser.stripeCurrentPeriodEnd,
     stripeCustomerId: dbUser.stripeCustomerId,
-    isSubscribed,
-    isCanceled,
+    stripeCurrentPeriodEnd: dbUser.stripeCurrentPeriodEnd,
+
+    // TRUTH BOMBS:
+    isSubscribed: true, // they paid so yes
+    isCanceled, // cancellation flag from Stripe
+    isActive: !isCanceled, // actively renewing or not
+    isOnGracePeriod: isCanceled && stillActive, // canceled but still active until end
+  };
+}
+
+function noPlan() {
+  const base = PLANS[0];
+  return {
+    ...base,
+    stripeSubscriptionId: null,
+    stripeCustomerId: null,
+    stripeCurrentPeriodEnd: null,
+    isSubscribed: false,
+    isCanceled: false,
+    isActive: false,
+    isOnGracePeriod: false,
   };
 }

@@ -5,7 +5,11 @@ const isPublicRoute = createRouteMatcher(["/api/uploadthing(.*)", "/api/webhooks
 
 export default clerkMiddleware(async (auth, req) => {
   const url = req.nextUrl.pathname;
-  if (url.startsWith("/api/webhooks/stripe")) return;
+  if (url.startsWith("/api/webhooks/stripe")) {
+    console.log("srtipe webhook allowed");
+    return;
+  }
+  if (url.startsWith("/api/trpc")) return;
 
   if (isProtectedRoute(req) && !isPublicRoute(req)) {
     await auth.protect();

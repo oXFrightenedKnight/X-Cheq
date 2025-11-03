@@ -4,17 +4,14 @@ import { headers } from "next/headers";
 import type Stripe from "stripe";
 
 export async function POST(request: Request) {
+  console.log("webhook hit");
   const body = await request.text();
   const signature = (await headers()).get("Stripe-Signature") ?? "";
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET || ""
-    );
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     return new Response(`Webhook Error: ${err instanceof Error ? err.message : "Unknown Error"}`, {
       status: 400,
@@ -23,6 +20,13 @@ export async function POST(request: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session;
   console.log("Session metadata:", session?.metadata);
+
+  console.log("🔥 Event received:", event.type);
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    console.log("🎯 Metadata:", session.metadata);
+  }
 
   if (!session?.metadata?.userId) {
     console.log("missing metadata");
@@ -42,7 +46,7 @@ export async function POST(request: Request) {
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer as string,
         stripePriceId: subscription.items.data[0]?.price.id,
-        stripeCurrentPeriodEnd: new Date(subscription.items.data[0]?.current_period_end * 1000),
+        stripeCurrentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
       },
     });
   }
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
       },
       data: {
         stripePriceId: subscription.items.data[0]?.price.id,
-        stripeCurrentPeriodEnd: new Date(subscription.items.data[0]?.current_period_end * 1000),
+        stripeCurrentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
       },
     });
   }
