@@ -93,7 +93,6 @@ const onUploadComplete = async ({
           id: createdFile.id,
         },
       });
-      return;
     }
 
     // vectorize + index entire document
