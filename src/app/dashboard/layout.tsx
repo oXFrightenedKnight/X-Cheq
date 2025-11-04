@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import SessionVersionSync from "@/components/sessionRefresher";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -8,5 +9,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return redirect("/auth-callback?origin=/dashboard");
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <SessionVersionSync></SessionVersionSync>
+      {children}
+    </>
+  );
 }
