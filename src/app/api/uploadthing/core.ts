@@ -79,8 +79,7 @@ const onUploadComplete = async ({
     const isProExceeded = pagesAmt > PLANS.find((plan) => plan.name === "Pro")!.maxPagesPerFile;
     const isAdvancedExceeded =
       pagesAmt > PLANS.find((plan) => plan.name === "Advanced")!.maxPagesPerFile;
-    const isFreeExceeded =
-      pagesAmt > PLANS.find((plan) => plan.name === "Advanced")!.maxPagesPerFile;
+    const isFreeExceeded = pagesAmt > PLANS.find((plan) => plan.name === "Free")!.maxPagesPerFile;
 
     if (
       (isSubscribed && (isProExceeded || isAdvancedExceeded)) ||
@@ -94,6 +93,7 @@ const onUploadComplete = async ({
           id: createdFile.id,
         },
       });
+      return;
     }
 
     // vectorize + index entire document
