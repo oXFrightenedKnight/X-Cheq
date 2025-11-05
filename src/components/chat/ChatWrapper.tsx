@@ -26,6 +26,9 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
     }
   );
 
+  const { data: plan } = trpc.getUserPlan.useQuery();
+  if (!plan) return null;
+
   if (isLoading)
     return (
       <div className="relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2">
@@ -62,8 +65,8 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
             <XCircle className="h-8 w-8 text-red-500"></XCircle>
             <h3 className="font-semibold text-xl">Your PDF is too big</h3>
             <p className="text-zinc-500 text-sm">
-              Your <span className="font-medium">Free</span> plan currently supports up to 2MB file
-              size
+              Your <span className="font-medium">{plan.planName}</span> plan currently supports up
+              to {plan.maxFileSize} file size
             </p>
             <Link
               href="/pricing"

@@ -68,9 +68,6 @@ export const appRouter = router({
       const { userId } = ctx;
       const { plan } = input;
 
-      console.log("context:", ctx);
-      console.log("userId:", userId);
-
       const billingUrl = absoluteUrl("/dashboard/billing");
 
       if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -190,12 +187,31 @@ export const appRouter = router({
 
       return { status: file.uploadStatus };
     }),
+  getUserPlan: privateProcedure.query(async ({ ctx }) => {
+    const { userId } = ctx;
+
+    if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+    const subscription = await getUserSubscriptionPlan();
+
+    // normalize plan name to one we have defined in PLANS
+    const planName = subscription?.name ?? "Free";
+
+    const planConfig =
+      PLANS.find((p) => p.name === planName) ?? PLANS.find((p) => p.name === "Free")!;
+
+    return {
+      // identity
+      userId,
+      // subscription status/plan
+      planName,
+      maxFiles: planConfig.maxFiles,
+      maxFileSize: planConfig.maxFileSize,
+    };
+  }),
   getFile: privateProcedure
     .input(z.object({ key: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      console.log("🔍 getFile TRPC hit");
-      console.log("✅ Key:", input.key);
-      console.log("👤 User from context:", ctx.userId);
       const { userId } = ctx;
 
       const file = await db.file.findFirst({

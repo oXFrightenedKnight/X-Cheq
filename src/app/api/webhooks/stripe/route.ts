@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 import type Stripe from "stripe";
 
 export async function POST(request: Request) {
-  console.log("webhook hit");
   const body = await request.text();
   const signature = (await headers()).get("Stripe-Signature") ?? "";
 
@@ -19,17 +18,12 @@ export async function POST(request: Request) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
-  console.log("Session metadata:", session?.metadata);
-
-  console.log("🔥 Event received:", event.type);
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    console.log("🎯 Metadata:", session.metadata);
   }
 
   if (!session?.metadata?.userId) {
-    console.log("missing metadata");
     return new Response(null, {
       status: 200,
     });

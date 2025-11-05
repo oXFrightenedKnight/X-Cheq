@@ -65,14 +65,14 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
   return (
     <Dropzone
       multiple={false}
-      onDrop={async (acceptedFile) => {
+      onDrop={async (acceptedFiles) => {
         setIsUploading(true);
         setUploadError(false);
 
         const progressInterval = startSimulatedProgress();
 
         // handle file uploading
-        const res = await startUpload(acceptedFile);
+        const res = await startUpload(acceptedFiles);
 
         if (!res) {
           setUploadError(true);
@@ -83,6 +83,45 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
         }
 
         const [fileResponse] = res;
+
+        const serverData = (fileResponse as any)?.serverData as
+          | {
+              ok?: boolean;
+              reason?: string;
+              pagesAmt?: number;
+              maxPages?: number;
+              planName?: string;
+              planMaxFiles?: string;
+            }
+          | undefined;
+
+        if (serverData && serverData.ok === false) {
+          clearInterval(progressInterval);
+          setUploadError(true);
+          setIsUploading(false);
+
+          if (serverData.reason === "PAGE_LIMIT_EXCEEDED") {
+            // Build a decent message
+            const maxPagesTxt =
+              serverData.maxPages != null
+                ? `${serverData.maxPages} page${serverData.maxPages === 1 ? "" : "s"}`
+                : "your plan's page limit";
+
+            toast.error("Upload Error", {
+              description:
+                serverData.reason === "PAGE_LIMIT_EXCEEDED"
+                  ? `This PDF has ${serverData.pagesAmt} pages, which exceeds ${maxPagesTxt}.`
+                  : "Server rejected the upload.",
+            });
+          } else if (serverData.reason === "MAX_FILE_LIMIT_EXCEEDED") {
+            toast.error("Upload Error", {
+              description: `Your plan currently supports up to ${serverData.planMaxFiles} files. Please delete old files or consider upgrading.`,
+            });
+          }
+
+          // hard stop: do not poll, do not redirect
+          return;
+        }
 
         const key = fileResponse?.key;
 

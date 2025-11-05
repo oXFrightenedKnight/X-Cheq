@@ -46,13 +46,10 @@ export async function getUserSubscriptionPlan() {
   if (isSubscribed && dbUser.stripeSubscriptionId) {
     try {
       const stripePlan = await stripe.subscriptions.retrieve(dbUser.stripeSubscriptionId);
-      console.log("Stripe subscription:", JSON.stringify(stripePlan, null, 2));
       isCanceled =
         stripePlan.cancel_at_period_end === true ||
         stripePlan.cancellation_details?.reason === "cancellation_requested" ||
         stripePlan.status !== "active";
-
-      console.log("isCanceled value:", isCanceled);
     } catch (error) {
       console.error("Error retrieving subscription:", error);
     }

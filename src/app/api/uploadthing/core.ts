@@ -15,13 +15,12 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { getUserSubscriptionPlan } from "@/lib/stripe";
 import { PLANS } from "@/config/stripe";
+import { UTApi } from "uploadthing/server";
 
 const f = createUploadthing();
 
 const middleware = async () => {
-  console.log("got to clerk");
   const { userId } = await auth();
-  console.log("userId:", userId);
 
   if (!userId) throw new Error("Unauthorized");
 
@@ -61,7 +60,6 @@ const onUploadComplete = async ({
       uploadStatus: "PROCESSING",
     },
   });
-  console.log("createdFile", createdFile);
 
   try {
     const response = await fetch(file.url); // fetch the file from UploadThing's storage
@@ -81,8 +79,13 @@ const onUploadComplete = async ({
       pagesAmt > PLANS.find((plan) => plan.name === "Advanced")!.maxPagesPerFile;
     const isFreeExceeded = pagesAmt > PLANS.find((plan) => plan.name === "Free")!.maxPagesPerFile;
 
+    const isSubscribedToAdvanced = subscriptionPlan.name === "Advanced";
+    const isSubscribedToPro = subscriptionPlan.name === "Pro";
+
+    // Check if page limit is exceeded
     if (
-      (isSubscribed && (isProExceeded || isAdvancedExceeded)) ||
+      (isSubscribedToPro && isProExceeded) ||
+      (isSubscribedToAdvanced && isAdvancedExceeded) ||
       (!isSubscribed && isFreeExceeded)
     ) {
       await db.file.update({
@@ -93,6 +96,48 @@ const onUploadComplete = async ({
           id: createdFile.id,
         },
       });
+
+      const planName = subscriptionPlan.name || "Free";
+
+      const utapi = new UTApi();
+      await utapi.deleteFiles(file.key); // key is what uploadthing uses, not id
+
+      await db.file.delete({
+        where: {
+          id: createdFile.id, // deletes the file after checking all requirements
+        },
+      });
+
+      return { ok: false, reason: "PAGE_LIMIT_EXCEEDED", pagesAmt, planName };
+    }
+
+    const currentFileCount = await db.file.count({
+      where: { userId: metadata.userId },
+    });
+
+    // Check if user plan supports more files
+    if (currentFileCount > subscriptionPlan.maxFiles!) {
+      await db.file.update({
+        data: {
+          uploadStatus: "FAILED",
+        },
+        where: {
+          id: createdFile.id,
+        },
+      });
+
+      const planName = subscriptionPlan.name || "Free";
+      const planMaxFiles = subscriptionPlan.maxFiles;
+
+      const utapi = new UTApi();
+      await utapi.deleteFiles(file.key); // key is what uploadthing uses, not id
+
+      await db.file.delete({
+        where: {
+          id: createdFile.id, // deletes the file after checking all requirements
+        },
+      });
+      return { ok: false, reason: "MAX_FILE_LIMIT_EXCEEDED", pagesAmt, planName, planMaxFiles };
     }
 
     // vectorize + index entire document
@@ -137,7 +182,7 @@ export const ourFileRouter = {
   freePlanUploader: f({
     pdf: {
       maxFileSize: "2MB",
-      maxFileCount: 2,
+      maxFileCount: 1,
     },
   })
     .middleware(middleware)
@@ -145,7 +190,7 @@ export const ourFileRouter = {
   advancedPlanUploader: f({
     pdf: {
       maxFileSize: "8MB",
-      maxFileCount: 10,
+      maxFileCount: 1,
     },
   })
     .middleware(middleware)
@@ -153,7 +198,7 @@ export const ourFileRouter = {
   proPlanUploader: f({
     pdf: {
       maxFileSize: "32MB",
-      maxFileCount: 50,
+      maxFileCount: 1,
     },
   })
     .middleware(middleware)
