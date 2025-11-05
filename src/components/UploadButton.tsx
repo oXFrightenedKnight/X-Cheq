@@ -84,16 +84,16 @@ const UploadDropzone = ({ subscriptionPlanName }: { subscriptionPlanName: string
 
         const [fileResponse] = res;
 
-        const serverData = (fileResponse as any)?.serverData as
-          | {
-              ok?: boolean;
-              reason?: string;
-              pagesAmt?: number;
-              maxPages?: number;
-              planName?: string;
-              planMaxFiles?: string;
-            }
-          | undefined;
+        type ServerData = {
+          ok?: boolean;
+          reason?: string;
+          pagesAmt?: number;
+          maxPages?: number;
+          planName?: string;
+          planMaxFiles?: string;
+        };
+
+        const serverData = (fileResponse?.serverData as ServerData | undefined) ?? undefined;
 
         if (serverData && serverData.ok === false) {
           clearInterval(progressInterval);
