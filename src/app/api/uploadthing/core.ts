@@ -23,30 +23,33 @@ export const ourFileRouter = {
       maxFileCount: 10,
     },
   })
-    .middleware(async ({ req }) => {
-      console.log("got to clerk");
-      const { userId } = await auth();
-      console.log("userId:", userId);
+    //.middleware(async ({ req }) => {
+    //console.log("got to clerk");
+    //const { userId } = await auth();
+    //console.log("userId:", userId);
 
-      if (!userId) throw new Error("Unauthorized");
+    //if (!userId) throw new Error("Unauthorized");
 
-      return {
-        userId: userId,
-      };
-    })
+    //return {
+    //userId: userId,
+    //};
+    //})
     .onUploadComplete(async ({ metadata, file }) => {
-      const createdFile = await db.file.create({
-        data: {
-          key: file.key,
-          name: file.name,
-          userId: metadata.userId,
-          url: file.ufsUrl,
-          uploadStatus: "PROCESSING",
-        },
-      });
-      console.log("createdFile", createdFile);
+      //const createdFile = await db.file.create({
+      //data: {
+      //key: file.key,
+      //name: file.name,
+      //userId: metadata.userId,
+      //url: file.ufsUrl,
+      //uploadStatus: "PROCESSING",
+      //},
+      //});
+      //console.log("createdFile", createdFile);
 
-      try {
+      console.log("✅ UPLOAD COMPLETE:", file.name);
+
+      {
+        /*try {
         const response = await fetch(file.ufsUrl); // fetch the file from UploadThing's storage
         const blob = await response.blob(); // turns response into blob for parsing (LangChain friendly format)
 
@@ -91,6 +94,7 @@ export const ourFileRouter = {
             id: createdFile.id,
           },
         });
+      }*/
       }
     }),
 } satisfies FileRouter;

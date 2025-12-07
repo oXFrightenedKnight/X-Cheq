@@ -1,11 +1,12 @@
+// app/api/uploadthing/route.ts
 import { createRouteHandler } from "uploadthing/next";
+import { ourFileRouter } from "@/app/api/uploadthing/core";
+import { our2FileRouter } from "./core2";
 
-import { ourFileRouter } from "./core";
-
-// Export routes for Next App Router
 export const { GET, POST } = createRouteHandler({
-  router: ourFileRouter,
-
-  // Apply an (optional) custom config:
-  // config: { ... },
+  router: our2FileRouter,
 });
+
+// Forces Node.js runtime + no caching nonsense
+export const dynamic = "force-dynamic";
+export const preferredRegion = "auto";

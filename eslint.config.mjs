@@ -25,6 +25,7 @@ const eslintConfig = [
       "prisma/generated",
       "src/generated",
       "src/generated/prisma",
+      "**/AppData/**",
     ],
   },
 ];
